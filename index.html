@@ -267,9 +267,18 @@
      * -------------------------------------------------------
      */
 
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
     // Combine all 10 tiles into a board
+    shuffleArray(tilePositions);
     const board = Grid([...Array(10).keys()].flatMap((tileNumber, index) => {
-      return buildTile(tileNumber + 1, 0, tilePositions[index]);
+      const rotation = Math.floor(Math.random() * 6);
+      return buildTile(tileNumber + 1, rotation, tilePositions[index]);
     }));
 
     render(board);
