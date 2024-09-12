@@ -30,41 +30,160 @@
 
     const tileSpecs = [
       {
+        number: 1,
+        planets: [
+          [-2,  0, 'desert'],
+          [-1, -1, 'swamp'],
+          [ 0,  2, 'oxide'],
+          [ 1, -1, 'terra'],
+          [ 1,  1, 'volcanic'],
+          [ 2, -0, 'transdim'],
+        ]
+      },
+      {
+        number: 2,
+        planets: [
+          [-1, -2, 'volcanic'],
+          [-1,  0, 'swamp'],
+          [-1,  1, 'oxide'],
+          [ 0, -2, 'titanium'],
+          [ 1, -1, 'ice'],
+          [ 1,  1, 'transdim'],
+          [ 2,  0, 'desert'],
+        ]
+      },
+      {
+        number: 3,
+        planets: [
+          [-1, -1, 'gaia'],
+          [-1,  1, 'terra'],
+          [ 0, -2, 'transdim'],
+          [ 0,  2, 'desert'],
+          [ 1,  0, 'ice'],
+          [ 2,  0, 'titanium'],
+        ]
+      },
+      {
+        number: 4,
+        planets: [
+          [-2,  0, 'ice'],
+          [-1,  0, 'volcanic'],
+          [ 0, -2, 'titanium'],
+          [ 0, -1, 'oxide'],
+          [ 1,  0, 'swamp'],
+          [ 2,  1, 'terra'],
+        ]
+      },
+      {
+        number: 5,
+        planets: [
+          [-1, -1, 'gaia'],
+          [-1,  1, 'volcanic'],
+          [ 0, -2, 'ice'],
+          [ 0,  2, 'desert'],
+          [ 2, -1, 'transdim'],
+          [ 2,  0, 'oxide'],
+        ]
+      },
+      {
+        number: 6,
+        planets: [
+          [-1, -1, 'swamp'],
+          [ 0,  1, 'gaia'],
+          [ 1, -2, 'transdim'],
+          [ 1, -1, 'terra'],
+          [ 1,  1, 'transdim'],
+          [ 2,  1, 'desert'],
+        ]
+      },
+      {
+        number: 7,
+        planets: [
+          [-2, -1, 'transdim'],
+          [-1,  0, 'gaia'],
+          [ 0, -1, 'oxide'],
+          [ 0,  2, 'titanium'],
+          [ 1, -2, 'swamp'],
+          [ 1,  0, 'gaia'],
+        ]
+      },
+      {
         number: 8,
         planets: [
-          [0, -2,  2, 'terra'],
-          [0, -1,  1, 'ice'],
-          [-1,  1,  0, 'volcanic'],
-          [1,  0, -1, 'titanium'],
-          [2, -2,  0, 'transdim'],
-          [-1,  2, -1, 'transdim'],
+          [-1,  0, 'volcanic'],
+          [-1,  1, 'transdim'],
+          [ 0, -2, 'terra'],
+          [ 0, -1, 'ice'],
+          [ 1,  0, 'titanium'],
+          [ 2, -1, 'transdim'],
         ]
-      }
+      },
+      {
+        number: 9,
+        planets: [
+          [-2,  1, 'swamp'],
+          [-1, -2, 'volcanic'],
+          [-1,  0, 'titanium'],
+          [ 1, -2, 'transdim'],
+          [ 1,  0, 'gaia'],
+          [ 2, -1, 'ice'],
+        ]
+      },
+      {
+        number: 10,
+        planets: [
+          [-2,  1, 'terra'],
+          [-1, -1, 'desert'],
+          [-1,  1, 'oxide'],
+          [ 1, -2, 'transdim'],
+          [ 1,  0, 'gaia'],
+          [ 2, -1, 'transdim'],
+        ]
+      },
     ];
 
-    // Initialize Grid and SVG
+    // Initialize Grid
     const Hex = Honeycomb.extendHex({
         size: 30,
         orientation: 'flat',
-    })
-    const Grid = Honeycomb.defineGrid(Hex)
-    const draw = SVG().addTo('#grid').size('100%', '100%')
+    });
+    const Grid = Honeycomb.defineGrid(Hex);
+    
 
     // Build one of the 10 tiles given the coordinates of each planet
-    function buildTile(number) {
+    function buildTile(number, rotation) {
       const tileSpec = tileSpecs.find(spec => spec.number === number);
+
+      // Convert coordinates to cube
+      const planets = tileSpec.planets.map(([x, y, planet]) => {
+        let coordinates = Hex().toCube({x, y});
+
+        // Rotate the coordinates {rotation} times clockwise
+        for (let i = 1; i <= rotation; i++) {
+          const {q, r, s} = coordinates;
+          coordinates = {q:-r, r:-s, s:-q};
+        }
+
+        return {
+          type: planet,
+          coordinates,
+        };
+      });
 
       return Grid.hexagon({
         radius: 2,
         onCreate: (hex => {
-          const planet = tileSpec.planets.find(([q,r,s]) => hex.q === q && hex.r === r && hex.s === s);
-          hex.planet = planet ? planet[3] : 'empty';
+          const planet = planets.find(({coordinates}) => hex.q === coordinates.q && hex.r === coordinates.r && hex.s === coordinates.s);
+          hex.planet = planet ? planet.type : 'empty';
         }),
       });
     }
 
     // Planets: Terra (blue), Desert (yellow), Swamp (brown), Oxide (red), Volcanic (Orange), Ice (white), Titanium (grey), Transdim, Gaia
-    const tile = buildTile(8);
+    const tile = buildTile(2, 3);
+
+    // Begin render
+    const draw = SVG().addTo('#grid').size('100%', '100%');
 
     // Reusable hexagon
     const hexSymbol = draw.symbol()
