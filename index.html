@@ -39,6 +39,7 @@
       'transdim': '#a64dff',
       'gaia': '#00aa00',
     };
+    const homePlanetTypes = Object.keys(planetColors).filter(type => type !== 'gaia' && type !== 'transdim');
 
     const tileShiftX = {q: 5, r: -2, s: -3};
     const tileShiftY = {q: 3, r: -5, s: 2};
@@ -219,6 +220,7 @@
             s: hex.s + translation.s,
             planet: planet ? planet.type : 'empty',
             text: isCenter ? number : '',
+            tileNumber: number,
             tilePositionX,
             tilePositionY,
             rotation,
@@ -227,6 +229,41 @@
       });
 
       return hexes;
+    }
+
+    // Calcualte the distance between two hexes
+    function distance(hexFrom, hexTo) {
+      return Math.max(Math.abs(hexFrom.q - hexTo.q), Math.abs(hexFrom.r - hexTo.r), Math.abs(hexFrom.s - hexTo.s));
+    }
+
+    // Check if the home planet distribution is balanced
+    function calculateMinDistances(grid) {
+      // Calculate distances between each pair of home planets
+      const distances = {};
+      homePlanetTypes.forEach(type => {
+        distances[type] = {}
+        homePlanetTypes.forEach(type2 => distances[type][type2] = []);
+      });
+      const minDistances = Object.assign({}, distances);
+      
+      grid.forEach(hex => {
+        if (homePlanetTypes.includes(hex.planet)) {
+          grid.forEach(otherHex => {
+            if (hex === otherHex) return;
+            if (!homePlanetTypes.includes(otherHex.planet)) return;
+
+            distances[hex.planet][otherHex.planet].push(distance(hex, otherHex));
+          });
+        }
+      });
+
+      homePlanetTypes.forEach(type => {
+        homePlanetTypes.forEach(type2 => {
+          minDistances[type][type2] = Math.min(...distances[type][type2]);
+        });
+      });
+
+      return minDistances;
     }
 
 
@@ -310,6 +347,9 @@
       const rotation = Math.floor(Math.random() * 6);
       return buildTile(tileNumber + 1, rotation, tilePositions[index]);
     }));
+
+    const minDistances = calculateMinDistances(board);
+    console.log(minDistances);
 
     render(board);
 
