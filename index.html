@@ -248,7 +248,10 @@
   
       // Render tile
       grid.forEach(hex => {
-        const { x, y } = hex.toPoint()
+        const { x: baseX, y: baseY } = hex.toPoint()
+        const x = baseX + hex.tilePositionX * 4;
+        const y = baseY - hex.tilePositionY * 4;
+        
         const centerX = x + hex.width()/2;
         const centerY = y + hex.height()/2;
 
