@@ -151,7 +151,7 @@
     
 
     // Build one of the 10 tiles given the coordinates of each planet
-    function buildTile(number, rotation) {
+    function buildTile(number, rotation, translation) {
       const tileSpec = tileSpecs.find(spec => spec.number === number);
 
       // Convert coordinates to cube
@@ -170,17 +170,25 @@
         };
       });
 
-      return Grid.hexagon({
+      const hexes = [];
+
+      Grid.hexagon({
         radius: 2,
         onCreate: (hex => {
           const planet = planets.find(({coordinates}) => hex.q === coordinates.q && hex.r === coordinates.r && hex.s === coordinates.s);
-          hex.planet = planet ? planet.type : 'empty';
+          hexes.push({
+            q: hex.q + translation.q,
+            r: hex.r + translation.r,
+            s: hex.s + translation.s,
+            planet: planet ? planet.type : 'empty'
+          })
         }),
       });
+
+      return hexes;
     }
 
-    // Planets: Terra (blue), Desert (yellow), Swamp (brown), Oxide (red), Volcanic (Orange), Ice (white), Titanium (grey), Transdim, Gaia
-    const tile = buildTile(2, 3);
+    const board = Grid([...buildTile(2, 3, {q: 0, r: 0, s: 0}), ...buildTile(10, 0, {q: -5, r: 2, s: 3})]);
 
     // Begin render
     const draw = SVG().addTo('#grid').size('100%', '100%');
@@ -192,7 +200,7 @@
         .stroke({ width: 1, color: '#999' })
 
     // Render tile
-    tile.forEach(hex => {
+    board.forEach(hex => {
         const { x, y } = hex.toPoint()
         draw.use(hexSymbol).translate(x, y);
         if (hex.planet !== 'empty') {
