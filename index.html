@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gaia Project Board Generator</title>
+</head>
+<body>
+  
+  <main class="container">
+    <div id="grid" style="margin: auto"></div>
+  </main>
+
+  <script src="static/svg.min.js"></script>
+  <script src="static/honeycomb.min.js"></script>
+  
+  <script>
+    const planetSize = 30;
+    const planetColors = {
+      'terra': '#2080f0',
+      'desert': '#f2ff00',
+      'swamp': '#704100',
+      'oxide': '#ff160a',
+      'volcanic': '#ff9500',
+      'ice': '#f8fff5',
+      'titanium': '#6c757d',
+      'transdim': '#a64dff',
+      'gaia': '#00aa00',
+    };
+
+    const tileSpecs = [
+      {
+        number: 8,
+        planets: [
+          [0, -2,  2, 'terra'],
+          [0, -1,  1, 'ice'],
+          [-1,  1,  0, 'volcanic'],
+          [1,  0, -1, 'titanium'],
+          [2, -2,  0, 'transdim'],
+          [-1,  2, -1, 'transdim'],
+        ]
+      }
+    ];
+
+    // Initialize Grid and SVG
+    const Hex = Honeycomb.extendHex({
+        size: 30,
+        orientation: 'flat',
+    })
+    const Grid = Honeycomb.defineGrid(Hex)
+    const draw = SVG().addTo('#grid').size('100%', '100%')
+
+    // Build one of the 10 tiles given the coordinates of each planet
+    function buildTile(number) {
+      const tileSpec = tileSpecs.find(spec => spec.number === number);
+
+      return Grid.hexagon({
+        radius: 2,
+        onCreate: (hex => {
+          const planet = tileSpec.planets.find(([q,r,s]) => hex.q === q && hex.r === r && hex.s === s);
+          hex.planet = planet ? planet[3] : 'empty';
+        }),
+      });
+    }
+
+    // Planets: Terra (blue), Desert (yellow), Swamp (brown), Oxide (red), Volcanic (Orange), Ice (white), Titanium (grey), Transdim, Gaia
+    const tile = buildTile(8);
+
+    // Reusable hexagon
+    const hexSymbol = draw.symbol()
+        .polygon(Hex().corners().map(({ x, y }) => `${x},${y}`))
+        .fill('#212529')
+        .stroke({ width: 1, color: '#999' })
+
+    // Render tile
+    tile.forEach(hex => {
+        const { x, y } = hex.toPoint()
+        draw.use(hexSymbol).translate(x, y);
+        if (hex.planet !== 'empty') {
+          draw.circle(planetSize).fill(planetColors[hex.planet]).translate(x + hex.width()/2 - planetSize/2, y + hex.height()/2 - planetSize/2);
+        }
+    })
+
+    // Resize grid container
+    const bbox = draw.bbox();
+    draw.viewbox(bbox);
+
+    const gridContainer = document.getElementById('grid');
+    gridContainer.style.width = '100%';
+    if (gridContainer.offsetWidth > bbox.width) {
+      gridContainer.style.width = `${Math.ceil(bbox.width)}px`;
+    }
+    
+  </script>
+</body>
+</html>
