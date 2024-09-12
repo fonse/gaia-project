@@ -213,13 +213,12 @@
         radius: 2,
         onCreate: (hex => {
           const planet = planets.find(({coordinates}) => hex.q === coordinates.q && hex.r === coordinates.r && hex.s === coordinates.s);
-          const isCenter = hex.q === 0 && hex.r === 0 && hex.s === 0;
           hexes.push({
             q: hex.q + translation.q,
             r: hex.r + translation.r,
             s: hex.s + translation.s,
             planet: planet ? planet.type : 'empty',
-            text: isCenter ? number : '',
+            isCenter: hex.q === 0 && hex.r === 0 && hex.s === 0,
             tileNumber: number,
             tilePositionX,
             tilePositionY,
@@ -298,8 +297,8 @@
           draw.circle(planetSize).fill(planetColors[hex.planet]).translate(centerX - planetSize/2, centerY - planetSize/2);
         }
 
-        if (hex.text) {
-          const text = draw.text(hex.text)
+        if (hex.isCenter) {
+          const text = draw.text(hex.tileNumber)
             .fill('#c0c0c0')
             .font({
               family: 'Helvetica',
