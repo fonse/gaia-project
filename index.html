@@ -28,6 +28,9 @@
       'gaia': '#00aa00',
     };
 
+    const tileShiftX = {q: 5, r: -2, s: -3};
+    const tileShiftY = {q: 3, r: -5, s: 2};
+
     const tileSpecs = [
       {
         number: 1,
@@ -142,6 +145,19 @@
       },
     ];
 
+    const tilePositions = [
+      [0,1],
+      [0,2],
+      [1,0],
+      [1,1],
+      [1,2],
+      [2,0],
+      [2,1],
+      [2,2],
+      [3,0],
+      [3,1],
+    ];
+
     // Initialize Grid
     const Hex = Honeycomb.extendHex({
         size: 30,
@@ -151,7 +167,7 @@
     
 
     // Build one of the 10 tiles given the coordinates of each planet
-    function buildTile(number, rotation, translation) {
+    function buildTile(number, rotation, tilePosition) {
       const tileSpec = tileSpecs.find(spec => spec.number === number);
 
       // Convert coordinates to cube
@@ -170,8 +186,17 @@
         };
       });
 
+      // Translate tile position to cube coordinates
+      let translation = {q: 0, r: 0, s: 0};
+      let [tilePositionX, tilePositionY] = tilePosition;
+      for (let i = 0; i < tilePositionX; i++) {
+        translation = {q: translation.q + tileShiftX.q, r: translation.r + tileShiftX.r, s: translation.s + tileShiftX.s};
+      }
+      for (let i = 0; i < tilePositionY; i++) {
+        translation = {q: translation.q + tileShiftY.q, r: translation.r + tileShiftY.r, s: translation.s + tileShiftY.s};
+      }
+      
       const hexes = [];
-
       Grid.hexagon({
         radius: 2,
         onCreate: (hex => {
@@ -188,7 +213,10 @@
       return hexes;
     }
 
-    const board = Grid([...buildTile(2, 3, {q: 0, r: 0, s: 0}), ...buildTile(10, 0, {q: -5, r: 2, s: 3})]);
+    // Combine all 10 tiles into a board
+    const board = Grid([...Array(10).keys()].flatMap((tileNumber, index) => {
+      return buildTile(tileNumber + 1, 0, tilePositions[index]);
+    }));
 
     // Begin render
     const draw = SVG().addTo('#grid').size('100%', '100%');
