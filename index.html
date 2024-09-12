@@ -15,6 +15,18 @@
   <script src="static/honeycomb.min.js"></script>
   
   <script>
+    /**
+     * -------------------------------------------------------
+     * Constants
+     * -------------------------------------------------------
+     */
+
+    const Hex = Honeycomb.extendHex({
+        size: 30,
+        orientation: 'flat',
+    });
+    const Grid = Honeycomb.defineGrid(Hex);
+    
     const planetSize = 30;
     const planetColors = {
       'terra': '#2080f0',
@@ -158,13 +170,12 @@
       [3,1],
     ];
 
-    // Initialize Grid
-    const Hex = Honeycomb.extendHex({
-        size: 30,
-        orientation: 'flat',
-    });
-    const Grid = Honeycomb.defineGrid(Hex);
-    
+
+    /**
+     * -------------------------------------------------------
+     * Grid Functions
+     * -------------------------------------------------------
+     */
 
     // Build one of the 10 tiles given the coordinates of each planet
     function buildTile(number, rotation, tilePosition) {
@@ -213,38 +224,56 @@
       return hexes;
     }
 
+
+    /**
+     * -------------------------------------------------------
+     * Rendering Functions
+     * -------------------------------------------------------
+     */
+    
+     function render(grid) {
+      // Begin render
+      const draw = SVG().addTo('#grid').size('100%', '100%');
+  
+      // Reusable hexagon
+      const hexSymbol = draw.symbol()
+          .polygon(Hex().corners().map(({ x, y }) => `${x},${y}`))
+          .fill('#212529')
+          .stroke({ width: 1, color: '#999' })
+  
+      // Render tile
+      grid.forEach(hex => {
+          const { x, y } = hex.toPoint()
+          draw.use(hexSymbol).translate(x, y);
+          if (hex.planet !== 'empty') {
+            draw.circle(planetSize).fill(planetColors[hex.planet]).translate(x + hex.width()/2 - planetSize/2, y + hex.height()/2 - planetSize/2);
+          }
+      })
+
+      // Resize grid container
+      const bbox = draw.bbox();
+      draw.viewbox(bbox);
+  
+      const gridContainer = document.getElementById('grid');
+      gridContainer.style.width = '100%';
+      if (gridContainer.offsetWidth > bbox.width) {
+        gridContainer.style.width = `${Math.ceil(bbox.width)}px`;
+      }
+    }
+
+    /**
+     * -------------------------------------------------------
+     * Generation Logic
+     * -------------------------------------------------------
+     */
+
     // Combine all 10 tiles into a board
     const board = Grid([...Array(10).keys()].flatMap((tileNumber, index) => {
       return buildTile(tileNumber + 1, 0, tilePositions[index]);
     }));
 
-    // Begin render
-    const draw = SVG().addTo('#grid').size('100%', '100%');
+    render(board);
 
-    // Reusable hexagon
-    const hexSymbol = draw.symbol()
-        .polygon(Hex().corners().map(({ x, y }) => `${x},${y}`))
-        .fill('#212529')
-        .stroke({ width: 1, color: '#999' })
-
-    // Render tile
-    board.forEach(hex => {
-        const { x, y } = hex.toPoint()
-        draw.use(hexSymbol).translate(x, y);
-        if (hex.planet !== 'empty') {
-          draw.circle(planetSize).fill(planetColors[hex.planet]).translate(x + hex.width()/2 - planetSize/2, y + hex.height()/2 - planetSize/2);
-        }
-    })
-
-    // Resize grid container
-    const bbox = draw.bbox();
-    draw.viewbox(bbox);
-
-    const gridContainer = document.getElementById('grid');
-    gridContainer.style.width = '100%';
-    if (gridContainer.offsetWidth > bbox.width) {
-      gridContainer.style.width = `${Math.ceil(bbox.width)}px`;
-    }
     
   </script>
 </body>
