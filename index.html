@@ -212,11 +212,16 @@
         radius: 2,
         onCreate: (hex => {
           const planet = planets.find(({coordinates}) => hex.q === coordinates.q && hex.r === coordinates.r && hex.s === coordinates.s);
+          const isCenter = hex.q === 0 && hex.r === 0 && hex.s === 0;
           hexes.push({
             q: hex.q + translation.q,
             r: hex.r + translation.r,
             s: hex.s + translation.s,
-            planet: planet ? planet.type : 'empty'
+            planet: planet ? planet.type : 'empty',
+            text: isCenter ? number : '',
+            tilePositionX,
+            tilePositionY,
+            rotation,
           })
         }),
       });
@@ -243,11 +248,33 @@
   
       // Render tile
       grid.forEach(hex => {
-          const { x, y } = hex.toPoint()
-          draw.use(hexSymbol).translate(x, y);
-          if (hex.planet !== 'empty') {
-            draw.circle(planetSize).fill(planetColors[hex.planet]).translate(x + hex.width()/2 - planetSize/2, y + hex.height()/2 - planetSize/2);
-          }
+        const { x, y } = hex.toPoint()
+        const centerX = x + hex.width()/2;
+        const centerY = y + hex.height()/2;
+
+        draw.use(hexSymbol).translate(x, y);
+        
+        if (hex.planet !== 'empty') {
+          draw.circle(planetSize).fill(planetColors[hex.planet]).translate(centerX - planetSize/2, centerY - planetSize/2);
+        }
+
+        if (hex.text) {
+          const text = draw.text(hex.text)
+            .fill('#c0c0c0')
+            .font({
+              family: 'Helvetica',
+              size: 20,
+              weight: 'bold',
+            });
+
+          text.move(centerX - text.length()/2, centerY - 5);
+          text.rotate(hex.rotation * 60, centerX, centerY);
+
+          draw.polygon('0,5 10,5 5,0')
+            .fill('#c0c0c0')
+            .move(centerX - 5, centerY - 15)
+            .rotate(hex.rotation * 60, centerX, centerY);
+        }
       })
 
       // Resize grid container
