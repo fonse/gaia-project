@@ -17,6 +17,15 @@
   <script>
     /**
      * -------------------------------------------------------
+     * Balance Rules
+     * -------------------------------------------------------
+     */
+    const ruleHomePlanetMinReachability = 2;
+    const ruleHomePlanetMaxReachability = 3;
+    const ruleClusterMaxSize = 5;
+
+    /**
+     * -------------------------------------------------------
      * Constants
      * -------------------------------------------------------
      */
@@ -323,15 +332,16 @@
     }
 
     // Check reachability of other home planets for each type
-    function isBalancedHomePlanets(grid) {
+    function isBalancedHomePlanets(board) {
       const homePlanetTypes = Object.keys(planetColors).filter(type => type !== 'gaia' && type !== 'transdim');
       const minDistances = {};
       homePlanetTypes.forEach(type => {
         minDistances[type] = 99;
       });
       
-      grid.filter((hex) => homePlanetTypes.includes(hex.planet)).forEach(hex => {
-        grid.filter((hex2) => hex2.planet === hex.planet && tileId(hex) < tileId(hex2))
+      // Calculate minimum distance between home planets for each type
+      board.filter((hex) => homePlanetTypes.includes(hex.planet)).forEach(hex => {
+        board.filter((hex2) => hex2.planet === hex.planet && tileId(hex) < tileId(hex2))
           .forEach(hex2 => {
             const distance = getDistance(hex, hex2);
             if (distance < minDistances[hex.planet]) {
@@ -340,14 +350,52 @@
           });
       });
 
+      // Apply reachability rules
       const distancesList = Object.values(minDistances);
-      return Math.max(...distancesList) <= 3 && Math.min(...distancesList) >= 2;
+      return Math.max(...distancesList) <= ruleHomePlanetMaxReachability && Math.min(...distancesList) >= ruleHomePlanetMinReachability;
+    }
+
+    // Check the size of planet clusters
+    function isBalancedClusters(board) {
+      const clusterSizes = [];
+      const visitedHexes = [];
+
+      // Calculate the size of each cluster of planets
+      board.filter((hex) => hex.planet !== "empty").forEach(hex => {
+        if (visitedHexes.includes(hex)) {
+          return;
+        }
+
+        // Each new planet is the start of a new cluster
+        const cluster = [hex]
+        let fringe = [hex];
+
+        // Use bfs to obtain the rest of the cluster
+        while (fringe.length > 0) {
+          const newFringe = [];
+          fringe.forEach(fringeHex => {
+            board.neighborsOf(fringeHex).filter(neighbor => neighbor && neighbor.planet !== 'empty' && !cluster.includes(neighbor))
+              .forEach(neighbor => {
+                cluster.push(neighbor);
+                newFringe.push(neighbor);
+              });
+          });
+
+          fringe = newFringe;
+        }
+
+        visitedHexes.push(...cluster);
+        clusterSizes.push(cluster.length);
+      });
+
+      // Apply cluster size rules
+      return Math.max(...clusterSizes) <= ruleClusterMaxSize;
     }
 
     const startTime = performance.now();
     for (let i = 1; i <= 1000; i++) {
       const board = generateBoard();
-      if (isBalancedHomePlanets(board)) {
+      if (isBalancedClusters(board) && isBalancedHomePlanets(board)) {
         console.log(`Board generated in ${i} iterations.`);
         render(board);
         break;
