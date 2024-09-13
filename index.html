@@ -29,13 +29,14 @@
      * Constants
      * -------------------------------------------------------
      */
+    const hexSize = 40;
     const Hex = Honeycomb.extendHex({
-        size: 30,
+        size: hexSize,
         orientation: 'flat',
     });
     const Grid = Honeycomb.defineGrid(Hex);
     
-    const planetSize = 30;
+    const planetSize = hexSize;
     const planetColors = {
       'terra': '#2080f0',
       'desert': '#f2ff00',
@@ -300,12 +301,18 @@
 
       // Resize grid container
       const bbox = draw.bbox();
-      draw.viewbox(bbox);
+      const correctedBbox = {
+        x: bbox.x + hexSize * 1.5,
+        y: bbox.y,
+        width: bbox.width - hexSize * 1.5,
+        height: bbox.height
+      };
+      draw.viewbox(correctedBbox);
   
       const gridContainer = document.getElementById('grid');
       gridContainer.style.width = '100%';
-      if (gridContainer.offsetWidth > bbox.width) {
-        gridContainer.style.width = `${Math.ceil(bbox.width)}px`;
+      if (gridContainer.offsetWidth > correctedBbox.width) {
+        gridContainer.style.width = `${Math.ceil(correctedBbox.width)}px`;
       }
     }
 
@@ -395,11 +402,11 @@
     const startTime = performance.now();
     for (let i = 1; i <= 1000; i++) {
       const board = generateBoard();
-      if (isBalancedClusters(board) && isBalancedHomePlanets(board)) {
+      // if (isBalancedClusters(board) && isBalancedHomePlanets(board)) {
         console.log(`Board generated in ${i} iterations.`);
         render(board);
         break;
-      }
+      // }
     }
     
     const endTime = performance.now();
