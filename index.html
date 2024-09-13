@@ -17,14 +17,6 @@
   <script>
     /**
      * -------------------------------------------------------
-     * Balance Rules
-     * -------------------------------------------------------
-     */
-    const ruleHomePlanetMaxProximity = 3;
-    const ruleOtherPlanetsReachableWithin = 2;
-
-    /**
-     * -------------------------------------------------------
      * Constants
      * -------------------------------------------------------
      */
@@ -46,7 +38,6 @@
       'transdim': '#a64dff',
       'gaia': '#00aa00',
     };
-    const homePlanetTypes = Object.keys(planetColors).filter(type => type !== 'gaia' && type !== 'transdim');
 
     const tileShiftX = {q: 5, r: -2, s: -3};
     const tileShiftY = {q: 3, r: -5, s: 2};
@@ -238,38 +229,13 @@
     }
 
     // Calcualte the distance between two hexes
-    function distance(hexFrom, hexTo) {
+    function getDistance(hexFrom, hexTo) {
       return Math.max(Math.abs(hexFrom.q - hexTo.q), Math.abs(hexFrom.r - hexTo.r), Math.abs(hexFrom.s - hexTo.s));
     }
 
-    // Check if the home planet distribution is balanced
-    function calculateMinDistances(grid) {
-      // Calculate distances between each pair of home planets
-      const distances = {};
-      homePlanetTypes.forEach(type => {
-        distances[type] = {}
-        homePlanetTypes.forEach(type2 => distances[type][type2] = []);
-      });
-      const minDistances = Object.assign({}, distances);
-      
-      grid.forEach(hex => {
-        if (homePlanetTypes.includes(hex.planet)) {
-          grid.forEach(otherHex => {
-            if (hex === otherHex) return;
-            if (!homePlanetTypes.includes(otherHex.planet)) return;
-
-            distances[hex.planet][otherHex.planet].push(distance(hex, otherHex));
-          });
-        }
-      });
-
-      homePlanetTypes.forEach(type => {
-        homePlanetTypes.forEach(type2 => {
-          minDistances[type][type2] = Math.min(...distances[type][type2]);
-        });
-      });
-
-      return minDistances;
+    // Unique identifier for each hex
+    function tileId(hex) {
+      return `${hex.q},${hex.r},${hex.s}`;
     }
 
 
@@ -356,36 +322,32 @@
       }));
     }
 
-    // Check min distances to ensure balance between home planets
-    function isBalanced(board) {
-      let balanced = true;
-      const minDistances = calculateMinDistances(board);
-
+    // Check reachability of other home planets for each type
+    function isBalancedHomePlanets(grid) {
+      const homePlanetTypes = Object.keys(planetColors).filter(type => type !== 'gaia' && type !== 'transdim');
+      const minDistances = {};
       homePlanetTypes.forEach(type => {
-        if (minDistances[type][type] < ruleHomePlanetMaxProximity) {
-          balanced = false;
-          return;
-        }
-
-        homePlanetTypes.forEach(type2 => {
-          if (type === type2) return;
-
-          if (minDistances[type][type2] > ruleOtherPlanetsReachableWithin) {
-            balanced = false;
-            return;
-          }
-        });
-
-        if (!balanced) return;
+        minDistances[type] = 99;
+      });
+      
+      grid.filter((hex) => homePlanetTypes.includes(hex.planet)).forEach(hex => {
+        grid.filter((hex2) => hex2.planet === hex.planet && tileId(hex) < tileId(hex2))
+          .forEach(hex2 => {
+            const distance = getDistance(hex, hex2);
+            if (distance < minDistances[hex.planet]) {
+              minDistances[hex.planet] = distance;
+            }
+          });
       });
 
-      return balanced;
+      const distancesList = Object.values(minDistances);
+      return Math.max(...distancesList) <= 3 && Math.min(...distancesList) >= 2;
     }
 
     const startTime = performance.now();
     for (let i = 1; i <= 1000; i++) {
       const board = generateBoard();
-      if (isBalanced(board)) {
+      if (isBalancedHomePlanets(board)) {
         console.log(`Board generated in ${i} iterations.`);
         render(board);
         break;
