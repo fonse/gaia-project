@@ -4,12 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gaia Project Board Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 10px 0 0;
+    }
+
+    #grid {
+      margin: auto;
+    }
+
+    .vertical {
+      transform: rotate(90deg) scale(1.25);
+      transform-origin: 0 0;
+      position: relative;
+      left: 97.5%;
+    }
+  </style>
 </head>
 <body>
   
-  <main class="container">
-    <div id="grid" style="margin: auto"></div>
-  </main>
+  <div id="grid"></div>
 
   <script src="static/svg.min.js"></script>
   <script src="static/honeycomb.min.js"></script>
@@ -299,7 +314,7 @@
         }
       })
 
-      // Resize grid container
+      // Update viewbox
       const bbox = draw.bbox();
       const correctedBbox = {
         x: bbox.x + hexSize * 1.5,
@@ -309,11 +324,23 @@
       };
       draw.viewbox(correctedBbox);
   
-      const gridContainer = document.getElementById('grid');
-      gridContainer.style.width = '100%';
-      if (gridContainer.offsetWidth > correctedBbox.width) {
-        gridContainer.style.width = `${Math.ceil(correctedBbox.width)}px`;
+      console.log(correctedBbox)
+
+      const gridElement = document.getElementById('grid');
+      
+      // Adjust for vertical screen
+      const isVertical = window.innerHeight > window.innerWidth;
+      if (isVertical) {
+        gridElement.classList.add('vertical');
+      } else {
+        gridElement.classList.remove('vertical');
+        gridElement.style.width = '100%';
+        if (gridElement.offsetWidth > correctedBbox.width) {
+          gridElement.style.width = `${Math.ceil(correctedBbox.width)}px`;
+        }
       }
+
+
     }
 
     /**
