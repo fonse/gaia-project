@@ -270,9 +270,9 @@
      * -------------------------------------------------------
      */
     
-     function render(grid) {
+    const draw = SVG().addTo('#grid').size('100%', '100%');
+    function render(grid) {
       // Begin render
-      const draw = SVG().addTo('#grid').size('100%', '100%');
   
       // Reusable hexagon
       const hexSymbol = draw.symbol()
@@ -314,6 +314,10 @@
         }
       })
 
+      resizeGrid();
+    }
+
+    function resizeGrid(){
       // Update viewbox
       const bbox = draw.bbox();
       const correctedBbox = {
@@ -324,11 +328,8 @@
       };
       draw.viewbox(correctedBbox);
   
-      console.log(correctedBbox)
-
-      const gridElement = document.getElementById('grid');
-      
       // Adjust for vertical screen
+      const gridElement = document.getElementById('grid');
       const isVertical = window.innerHeight > window.innerWidth;
       if (isVertical) {
         gridElement.classList.add('vertical');
@@ -339,9 +340,11 @@
           gridElement.style.width = `${Math.ceil(correctedBbox.width)}px`;
         }
       }
-
-
     }
+
+    window.addEventListener('resize', function() {
+      resizeGrid();
+    });
 
     /**
      * -------------------------------------------------------
@@ -429,11 +432,11 @@
     const startTime = performance.now();
     for (let i = 1; i <= 1000; i++) {
       const board = generateBoard();
-      // if (isBalancedClusters(board) && isBalancedHomePlanets(board)) {
+      if (isBalancedClusters(board) && isBalancedHomePlanets(board)) {
         console.log(`Board generated in ${i} iterations.`);
         render(board);
         break;
-      // }
+      }
     }
     
     const endTime = performance.now();
