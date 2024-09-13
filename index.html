@@ -17,10 +17,17 @@
   <script>
     /**
      * -------------------------------------------------------
+     * Balance Rules
+     * -------------------------------------------------------
+     */
+    const ruleHomePlanetMaxProximity = 3;
+    const ruleOtherPlanetsReachableWithin = 2;
+
+    /**
+     * -------------------------------------------------------
      * Constants
      * -------------------------------------------------------
      */
-
     const Hex = Honeycomb.extendHex({
         size: 30,
         orientation: 'flat',
@@ -340,18 +347,53 @@
       }
     }
 
-    // Combine all 10 tiles into a board
-    shuffleArray(tilePositions);
-    const board = Grid([...Array(10).keys()].flatMap((tileNumber, index) => {
-      const rotation = Math.floor(Math.random() * 6);
-      return buildTile(tileNumber + 1, rotation, tilePositions[index]);
-    }));
+    // Randomly place and rotate all 10 tiles
+    function generateBoard() {
+      shuffleArray(tilePositions);
+      return Grid([...Array(10).keys()].flatMap((tileNumber, index) => {
+        const rotation = Math.floor(Math.random() * 6);
+        return buildTile(tileNumber + 1, rotation, tilePositions[index]);
+      }));
+    }
 
-    const minDistances = calculateMinDistances(board);
-    console.log(minDistances);
+    // Check min distances to ensure balance between home planets
+    function isBalanced(board) {
+      let balanced = true;
+      const minDistances = calculateMinDistances(board);
 
-    render(board);
+      homePlanetTypes.forEach(type => {
+        if (minDistances[type][type] < ruleHomePlanetMaxProximity) {
+          balanced = false;
+          return;
+        }
 
+        homePlanetTypes.forEach(type2 => {
+          if (type === type2) return;
+
+          if (minDistances[type][type2] > ruleOtherPlanetsReachableWithin) {
+            balanced = false;
+            return;
+          }
+        });
+
+        if (!balanced) return;
+      });
+
+      return balanced;
+    }
+
+    const startTime = performance.now();
+    for (let i = 1; i <= 1000; i++) {
+      const board = generateBoard();
+      if (isBalanced(board)) {
+        console.log(`Board generated in ${i} iterations.`);
+        render(board);
+        break;
+      }
+    }
+    
+    const endTime = performance.now();
+    console.log(`Execution time: ${endTime - startTime}ms`);
     
   </script>
 </body>
