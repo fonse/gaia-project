@@ -15,19 +15,17 @@
       display: none;
     }
 
+    .horizontal {
+      transform: rotate(90deg);
+      position: relative;
+    }
+
     .spinner {
       display: flex;
       width: 100%;
       justify-content: center;
-      height: 30vh;
-      margin-top: 35vh;
-    }
-
-    .vertical {
-      transform: rotate(90deg) scale(1.25);
-      transform-origin: 0 0;
-      position: relative;
-      left: 97.5%;
+      max-height: 200px;
+      margin-top: 25vh;
     }
   </style>
 </head>
@@ -50,7 +48,7 @@
     const hexSize = 40;
     const Hex = Honeycomb.extendHex({
         size: hexSize,
-        orientation: 'flat',
+        orientation: 'pointy',
     });
     const Grid = Honeycomb.defineGrid(Hex);
     
@@ -124,25 +122,21 @@
     function resizeGrid(){
       // Update viewbox
       const bbox = draw.bbox();
-      const correctedBbox = {
-        x: bbox.x + hexSize * 1.5,
-        y: bbox.y,
-        width: bbox.width - hexSize * 1.5,
-        height: bbox.height
-      };
-      draw.viewbox(correctedBbox);
-  
-      // Adjust for vertical screen
+      draw.viewbox(bbox);
+
+      // Adjust element width
       const gridElement = document.getElementById('grid');
-      const isVertical = window.innerHeight > window.innerWidth;
-      if (isVertical) {
-        gridElement.classList.add('vertical');
+      gridElement.style.width = '100%';
+      if (gridElement.offsetWidth > bbox.width) {
+        gridElement.style.width = `${Math.ceil(bbox.width)}px`;
+      }
+
+      // Rotate board if the screen is horizontal
+      if (window.innerWidth > window.innerHeight) {
+        gridElement.classList.add('horizontal');
+        gridElement.style.top = `-${Math.ceil((bbox.height - bbox.width)/2)}px`;
       } else {
-        gridElement.classList.remove('vertical');
-        gridElement.style.width = '100%';
-        if (gridElement.offsetWidth > correctedBbox.width) {
-          gridElement.style.width = `${Math.ceil(correctedBbox.width)}px`;
-        }
+        gridElement.classList.remove('horizontal');
       }
     }
 
@@ -153,7 +147,7 @@
      * -------------------------------------------------------
      */
 
-    const worker = new Worker("static/worker.js");
+    const worker = new Worker(`static/worker.js?v=${Date.now()}`);
     worker.postMessage(undefined);
     worker.onmessage = (e) => {
       const board = Grid(e.data);

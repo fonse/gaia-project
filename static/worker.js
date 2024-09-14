@@ -3,7 +3,7 @@ importScripts("honeycomb.min.js");
 onmessage = function(e) {
   const Hex = Honeycomb.extendHex({
     size: 40,
-    orientation: 'flat',
+    orientation: 'pointy',
   });
   const Grid = Honeycomb.defineGrid(Hex);
 
@@ -155,14 +155,14 @@ const tileSpecs = [
 const tilePositions = [
   [0,1],
   [0,2],
+  [0,3],
   [1,0],
   [1,1],
   [1,2],
+  [1,3],
   [2,0],
   [2,1],
   [2,2],
-  [3,0],
-  [3,1],
 ];
 
 const homePlanetTypes = ["terra", "desert", "swamp", "oxide", "volcanic", "ice", "titanium"];
