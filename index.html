@@ -190,17 +190,10 @@
       worker.terminate();
     };
 
-    // Re-render on resize
-    let debounceTimeout;
-    function debounce(func, delay) {
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(func, delay);
-    }
-
-    window.addEventListener('resize', function() {
-      debounce(render, 50);
+    // Re-render on screen orientation change
+    screen.orientation.addEventListener("change", (event) => {
+      render();
     });
-
   </script>
 </body>
 </html>
