@@ -153,8 +153,10 @@
       }
 
       // Adjust element height if it doesn't fit vertically within the screen
-      if (bbox.height > window.innerHeight) {
+      if (gridElement.offsetHeight > window.innerHeight) {
         gridElement.style.height = `${window.innerHeight - 20}px`;
+      } else {
+        gridElement.style.height = 'auto';
       }
     }
 
