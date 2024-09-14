@@ -13,6 +13,7 @@
     #grid {
       margin: auto;
       display: none;
+      max-width: 100%;
     }
 
     .spinner {
@@ -134,9 +135,15 @@
       draw.viewbox(bbox);
       
       // Adjust element width if it fits entirely within the screen
-      gridElement.style.width = '100%';
-      if (gridElement.offsetWidth > bbox.width) {
+      if (isHorizontal && gridElement.offsetWidth > bbox.width) {
+        console.log('Adjusting width', `${Math.ceil(bbox.width)}px`);
         gridElement.style.width = `${Math.ceil(bbox.width)}px`;
+      }
+
+      // Adjust element height if it doesn't fit vertically within the screen
+      if (bbox.height > window.innerHeight) {
+        console.log('Adjusting height', `${window.innerHeight - 20}px`);
+        gridElement.style.height = `${window.innerHeight - 20}px`;
       }
     }
 
