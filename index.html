@@ -83,13 +83,11 @@
       gridElement.innerHTML = '';
       
       const draw = SVG().addTo('#grid').size('100%', '100%');
-
-      // Detect screen orientation
-      const isHorizontal = window.innerWidth > window.innerHeight;
+      const group = draw.group();
 
       // Reusable hexagon
-      const hexSymbol = draw.symbol()
-          .polygon(Hex().corners().map(({ x, y }) => isHorizontal ? `${y},${x}` : `${x},${y}`))
+      const hexSymbol = group.symbol()
+          .polygon(Hex().corners().map(({ x, y }) => `${x},${y}`))
           .fill('#212529')
           .stroke({ width: 1, color: '#999' })
   
@@ -103,18 +101,18 @@
         const centerY = y + hex.height()/2;
 
         // Draw hexagon
-        draw.use(hexSymbol).translate(...maybeFlip(isHorizontal, x, y));
+        group.use(hexSymbol).translate(x, y);
         
         // Draw planet
         if (hex.planet !== 'empty') {
-          draw.circle(planetSize)
+          group.circle(planetSize)
             .fill(planetColors[hex.planet])
-            .translate(...maybeFlip(isHorizontal, centerX - planetSize/2, centerY - planetSize/2));
+            .translate(centerX - planetSize/2, centerY - planetSize/2);
         }
 
         // Draw tile number
         if (hex.isCenter) {
-          const text = draw.text(hex.tileNumber)
+          const text = group.text(hex.tileNumber)
             .fill('#c0c0c0')
             .font({
               family: 'Helvetica',
@@ -122,22 +120,35 @@
               weight: 'bold',
             });
 
-          text.move(...maybeFlip(isHorizontal, centerX - text.length()/2, centerY - 5));
-          text.rotate(hex.rotation * 60, ...maybeFlip(isHorizontal, centerX, centerY));
+          text.move(centerX - text.length()/2, centerY - 5);
+          text.rotate(hex.rotation * 60, centerX, centerY);
 
-          draw.polygon('0,5 10,5 5,0')
+          group.polygon('0,5 10,5 5,0')
             .fill('#c0c0c0')
-            .move(...maybeFlip(isHorizontal, centerX - 5, centerY - 15))
-            .rotate(hex.rotation * 60, ...maybeFlip(isHorizontal, centerX, centerY));
+            .move(centerX - 5, centerY - 15)
+            .rotate(hex.rotation * 60, centerX, centerY);
         }
       })
 
+      // Rotate board if the screen is landscape
+      let bbox = group.bbox();
+      if (window.innerWidth > window.innerHeight) {
+        group.rotate(90, bbox.cx, bbox.cy);
+        const bboxCorrection = Math.floor((bbox.height - bbox.width)/2);
+        bbox = {
+          x: bbox.x - bboxCorrection,
+          y: bbox.y + bboxCorrection,
+          width: bbox.height,
+          height: bbox.width,
+        };
+      }
+      
       // Update viewbox
-      const bbox = draw.bbox();
       draw.viewbox(bbox);
       
+
       // Adjust element width if it fits entirely within the screen
-      if (isHorizontal && gridElement.offsetWidth > bbox.width) {
+      if (gridElement.offsetWidth > bbox.width) {
         gridElement.style.width = `${Math.ceil(bbox.width)}px`;
       }
 
