@@ -70,16 +70,9 @@
      * -------------------------------------------------------
      */
     
-    function getRotationAngle() {
-      const angles = {
-        'portrait-primary': 0,
-        'landscape-primary': 90,
-        'portrait-secondary': 180,
-        'landscape-secondary': 270,
-      };
-
-      const orientation = screen.orientation.type || 'landscape-primary';
-      return angles[orientation];
+    
+    function maybeFlip(flip, x, y) {
+      return flip ? [y, x] : [x, y];
     }
     
     function render() {
@@ -138,11 +131,9 @@
       })
 
       // Rotate board if the screen is landscape
-      const angle = getRotationAngle();
-      
       let bbox = group.bbox();
-      group.rotate(angle, bbox.cx, bbox.cy);
-      if (angle === 90 || angle === 270) {
+      if (window.innerWidth > window.innerHeight) {
+        group.rotate(90, bbox.cx, bbox.cy);
         const bboxCorrection = Math.floor((bbox.height - bbox.width)/2);
         bbox = {
           x: bbox.x - bboxCorrection,
@@ -190,10 +181,17 @@
       worker.terminate();
     };
 
-    // Re-render on screen orientation change
-    screen.orientation.addEventListener("change", (event) => {
-      render();
+    // Re-render on resize
+    let debounceTimeout;
+    function debounce(func, delay) {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(func, delay);
+    }
+
+    window.addEventListener('resize', function() {
+      debounce(render, 50);
     });
+
   </script>
 </body>
 </html>
