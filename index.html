@@ -149,6 +149,7 @@
 
     let board = null;
 
+    // Generate board in a Web Worker
     const worker = new Worker(`static/worker.js?v=${Date.now()}`);
     worker.postMessage(undefined);
     worker.onmessage = (e) => {
@@ -160,8 +161,15 @@
       worker.terminate();
     };
 
+    // Re-render on resize
+    let debounceTimeout;
+    function debounce(func, delay) {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(func, delay);
+    }
+
     window.addEventListener('resize', function() {
-      render();
+      debounce(render, 50);
     });
 
   </script>
