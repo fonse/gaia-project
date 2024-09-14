@@ -124,19 +124,20 @@
       const bbox = draw.bbox();
       draw.viewbox(bbox);
 
-      // Adjust element width
-      const gridElement = document.getElementById('grid');
-      gridElement.style.width = '100%';
-      if (gridElement.offsetWidth > bbox.width) {
-        gridElement.style.width = `${Math.ceil(bbox.width)}px`;
-      }
-
       // Rotate board if the screen is horizontal
+      const gridElement = document.getElementById('grid');
       if (window.innerWidth > window.innerHeight) {
         gridElement.classList.add('horizontal');
         gridElement.style.top = `-${Math.ceil((bbox.height - bbox.width)/2)}px`;
+        gridElement.style.width = `${Math.ceil(100 * bbox.width / bbox.height)}%`;
       } else {
         gridElement.classList.remove('horizontal');
+        gridElement.style.width = '100%';
+      }
+
+      // Adjust element width if it fits entirely within the screen
+      if (gridElement.offsetWidth > bbox.width) {
+        gridElement.style.width = `${Math.ceil(bbox.width)}px`;
       }
     }
 
@@ -147,7 +148,7 @@
      * -------------------------------------------------------
      */
 
-    const worker = new Worker(`static/worker.js`);
+    const worker = new Worker(`static/worker.js?v=${Date.now()}`);
     worker.postMessage(undefined);
     worker.onmessage = (e) => {
       const board = Grid(e.data);
