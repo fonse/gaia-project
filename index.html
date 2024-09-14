@@ -70,9 +70,16 @@
      * -------------------------------------------------------
      */
     
-    
-    function maybeFlip(flip, x, y) {
-      return flip ? [y, x] : [x, y];
+    function getRotationAngle() {
+      const angles = {
+        'portrait-primary': 0,
+        'landscape-primary': 90,
+        'portrait-secondary': 180,
+        'landscape-secondary': 270,
+      };
+
+      const orientation = screen.orientation.type || 'landscape-primary';
+      return angles[orientation];
     }
     
     function render() {
@@ -131,9 +138,11 @@
       })
 
       // Rotate board if the screen is landscape
+      const angle = getRotationAngle();
+      
       let bbox = group.bbox();
-      if (window.innerWidth > window.innerHeight) {
-        group.rotate(90, bbox.cx, bbox.cy);
+      group.rotate(angle, bbox.cx, bbox.cy);
+      if (angle === 90 || angle === 270) {
         const bboxCorrection = Math.floor((bbox.height - bbox.width)/2);
         bbox = {
           x: bbox.x - bboxCorrection,
