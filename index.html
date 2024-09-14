@@ -147,7 +147,7 @@
      * -------------------------------------------------------
      */
 
-    const worker = new Worker(`static/worker.js?v=${Date.now()}`);
+    const worker = new Worker(`static/worker.js`);
     worker.postMessage(undefined);
     worker.onmessage = (e) => {
       const board = Grid(e.data);
