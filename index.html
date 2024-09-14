@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gaia Project Board Generator</title>
+  <link rel="icon" href="static/favicon.png" type="image/x-icon">
+  
   <style>
     body {
       margin: 0;
@@ -136,13 +138,11 @@
       
       // Adjust element width if it fits entirely within the screen
       if (isHorizontal && gridElement.offsetWidth > bbox.width) {
-        console.log('Adjusting width', `${Math.ceil(bbox.width)}px`);
         gridElement.style.width = `${Math.ceil(bbox.width)}px`;
       }
 
       // Adjust element height if it doesn't fit vertically within the screen
       if (bbox.height > window.innerHeight) {
-        console.log('Adjusting height', `${window.innerHeight - 20}px`);
         gridElement.style.height = `${window.innerHeight - 20}px`;
       }
     }
